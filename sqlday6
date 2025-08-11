@@ -1,0 +1,384 @@
+1. List all employees along with their department names.
+mysql> SELECT e.emp_id, e.name, d.department_name
+    -> FROM Employees e
+    -> INNER JOIN Departments d ON e.department_id = d.department_id;
++--------+---------+----------------+
+| emp_id | name    | department_name|
++--------+---------+----------------+
+|      1 | Alice   | HR             |
+|      2 | Bob     | IT             |
+|      3 | Charlie | HR             |
+|      4 | David   | Finance        |
+|      6 | Frank   | Sales          |
+|      7 | Grace   | IT             |
++--------+---------+----------------+
+6 rows in set (0.00 sec)
+
+
+2. Show the names of employees who work in the IT department.
+mysql> SELECT e.name
+    -> FROM Employees e
+    -> INNER JOIN Departments d ON e.department_id = d.department_id
+    -> WHERE d.department_name = 'IT';
++-------+
+| name  |
++-------+
+| Bob   |
+| Grace |
++-------+
+2 rows in set (0.00 sec)
+
+
+3. Get the names and locations of departments where at least one employee works.
+mysql> SELECT DISTINCT d.department_name, d.location
+    -> FROM Departments d
+    -> INNER JOIN Employees e ON e.department_id = d.department_id;
++----------------+---------------+
+| department_name| location      |
++----------------+---------------+
+| HR             | New York      |
+| IT             | San Francisco |
+| Finance        | Chicago       |
+| Sales          | Boston        |
++----------------+---------------+
+4 rows in set (0.00 sec)
+
+
+4. Find employees who work in the same location as the 'HR' department.
+mysql> SELECT e.name
+    -> FROM Employees e
+    -> INNER JOIN Departments d1 ON e.department_id = d1.department_id
+    -> WHERE d1.location = (SELECT location FROM Departments WHERE department_name='HR');
++---------+
+| name    |
++---------+
+| Alice   |
+| Charlie |
++---------+
+2 rows in set (0.00 sec)
+
+
+5. List department names and employee count (only departments with employees).
+mysql> SELECT d.department_name, COUNT(e.emp_id) AS employee_count
+    -> FROM Departments d
+    -> INNER JOIN Employees e ON e.department_id = d.department_id
+    -> GROUP BY d.department_name;
++----------------+----------------+
+| department_name| employee_count |
++----------------+----------------+
+| HR             |              2 |
+| IT             |              2 |
+| Finance        |              1 |
+| Sales          |              1 |
++----------------+----------------+
+4 rows in set (0.00 sec)
+
+
+6. List all employees and their departments (even if they don’t belong to any department).
+mysql> SELECT e.name, d.department_name
+    -> FROM Employees e
+    -> LEFT JOIN Departments d ON e.department_id = d.department_id;
++---------+----------------+
+| name    | department_name|
++---------+----------------+
+| Alice   | HR             |
+| Bob     | IT             |
+| Charlie | HR             |
+| David   | Finance        |
+| Eve     | NULL           |
+| Frank   | Sales          |
+| Grace   | IT             |
+| Hannah  | NULL           |
++---------+----------------+
+8 rows in set (0.00 sec)
+
+
+7. Find employees who are not assigned to any department.
+mysql> SELECT e.name
+    -> FROM Employees e
+    -> LEFT JOIN Departments d ON e.department_id = d.department_id
+    -> WHERE e.department_id IS NULL;
++--------+
+| name   |
++--------+
+| Eve    |
+| Hannah |
++--------+
+2 rows in set (0.00 sec)
+
+
+8. List all departments and the names of employees working in them (include departments without employees).
+mysql> SELECT d.department_name, e.name
+    -> FROM Departments d
+    -> LEFT JOIN Employees e ON d.department_id = e.department_id;
++----------------+---------+
+| department_name| name    |
++----------------+---------+
+| HR             | Alice   |
+| HR             | Charlie |
+| IT             | Bob     |
+| IT             | Grace   |
+| Finance        | David   |
+| Sales          | Frank   |
+| Marketing      | NULL    |
++----------------+---------+
+7 rows in set (0.00 sec)
+
+9. Show employee names and department names, replacing NULLs with 'Unassigned'.
+mysql> SELECT e.name, IFNULL(d.department_name, 'Unassigned') AS department_name
+    -> FROM Employees e
+    -> LEFT JOIN Departments d ON e.department_id = d.department_id;
++---------+----------------+
+| name    | department_name|
++---------+----------------+
+| Alice   | HR             |
+| Bob     | IT             |
+| Charlie | HR             |
+| David   | Finance        |
+| Eve     | Unassigned     |
+| Frank   | Sales          |
+| Grace   | IT             |
+| Hannah  | Unassigned     |
++---------+----------------+
+8 rows in set (0.00 sec)
+
+
+10. Find departments where no employees are assigned.
+mysql> SELECT d.department_name
+    -> FROM Departments d
+    -> LEFT JOIN Employees e ON d.department_id = e.department_id
+    -> WHERE e.department_id IS NULL;
++----------------+
+| department_name|
++----------------+
+| Marketing      |
++----------------+
+1 row in set (0.00 sec)
+
+11. Show all departments and the employees working in them (even if no employees).
+mysql> SELECT d.department_name, e.name
+    -> FROM Departments d
+    -> LEFT JOIN Employees e ON d.department_id = e.department_id;
++----------------+---------+
+| department_name| name    |
++----------------+---------+
+| HR             | Alice   |
+| HR             | Charlie |
+| IT             | Bob     |
+| IT             | Grace   |
+| Finance        | David   |
+| Sales          | Frank   |
+| Marketing      | NULL    |
++----------------+---------+
+7 rows in set (0.00 sec)
+
+12. List all employees and their department locations.
+mysql> SELECT e.name, d.location
+    -> FROM Employees e
+    -> LEFT JOIN Departments d ON e.department_id = d.department_id;
++---------+---------------+
+| name    | location      |
++---------+---------------+
+| Alice   | New York      |
+| Bob     | San Francisco |
+| Charlie | New York      |
+| David   | Chicago       |
+| Eve     | NULL          |
+| Frank   | Boston        |
+| Grace   | San Francisco |
+| Hannah  | NULL          |
++---------+---------------+
+8 rows in set (0.00 sec)
+
+13. List all employees and departments, even if they don't match.
+mysql> SELECT e.name, d.department_name
+    -> FROM Employees e
+    -> LEFT JOIN Departments d ON e.department_id = d.department_id
+    -> UNION
+    -> SELECT e.name, d.department_name
+    -> FROM Employees e
+    -> RIGHT JOIN Departments d ON e.department_id = d.department_id;
++---------+----------------+
+| name    | department_name|
++---------+----------------+
+| Alice   | HR             |
+| Bob     | IT             |
+| Charlie | HR             |
+| David   | Finance        |
+| Eve     | NULL           |
+| Frank   | Sales          |
+| Grace   | IT             |
+| Hannah  | NULL           |
+| NULL    | Marketing      |
++---------+----------------+
+9 rows in set (0.00 sec)
+
+14. Show which employees or departments are missing a match.
+mysql> SELECT e.name, d.department_name
+    -> FROM Employees e
+    -> LEFT JOIN Departments d ON e.department_id = d.department_id
+    -> WHERE d.department_id IS NULL
+    -> UNION
+    -> SELECT e.name, d.department_name
+    -> FROM Employees e
+    -> RIGHT JOIN Departments d ON e.department_id = d.department_id
+    -> WHERE e.department_id IS NULL;
++---------+----------------+
+| name    | department_name|
++---------+----------------+
+| Eve     | NULL           |
+| Hannah  | NULL           |
+| NULL    | Marketing      |
++---------+----------------+
+3 rows in set (0.00 sec)
+
+15. Find all pairs of employees who work in the same department.
+mysql> SELECT e1.name AS emp1, e2.name AS emp2, e1.department_id
+    -> FROM Employees e1
+    -> INNER JOIN Employees e2
+    -> ON e1.department_id = e2.department_id
+    -> WHERE e1.emp_id < e2.emp_id;
++-------+---------+---------------+
+| emp1  | emp2    | department_id |
++-------+---------+---------------+
+| Alice | Charlie |           101 |
+| Bob   | Grace   |           102 |
++-------+---------+---------------+
+2 rows in set (0.00 sec)
+
+16. List employees along with their colleagues in the same department (exclude self).
+mysql> SELECT e1.name AS employee, e2.name AS colleague
+    -> FROM Employees e1
+    -> INNER JOIN Employees e2
+    -> ON e1.department_id = e2.department_id
+    -> WHERE e1.emp_id <> e2.emp_id;
++----------+-----------+
+| employee | colleague |
++----------+-----------+
+| Alice    | Charlie   |
+| Charlie  | Alice     |
+| Bob      | Grace     |
+| Grace    | Bob       |
++----------+-----------+
+4 rows in set (0.00 sec)
+
+17. Find all employee pairs where one earns more than the other.
+mysql> SELECT e1.name AS higher_paid, e2.name AS lower_paid
+    -> FROM Employees e1
+    -> JOIN Employees e2
+    ->     ON e1.salary > e2.salary;
++-------------+------------+
+| higher_paid | lower_paid |
++-------------+------------+
+| Hannah      | Alice      |
+| Eve         | Alice      |
+| Charlie     | Alice      |
+| Hannah      | Bob        |
+| Grace       | Bob        |
+| Eve         | Bob        |
+| Charlie     | Bob        |
+| Alice       | Bob        |
+| Eve         | Charlie    |
+| Hannah      | David      |
+| Grace       | David      |
+| Frank       | David      |
+| Eve         | David      |
+| Charlie     | David      |
+| Bob         | David      |
+| Alice       | David      |
+| Hannah      | Frank      |
+| Grace       | Frank      |
+| Eve         | Frank      |
+| Charlie     | Frank      |
+| Bob         | Frank      |
+| Alice       | Frank      |
+| Hannah      | Grace      |
+| Eve         | Grace      |
+| Charlie     | Grace      |
+| Alice       | Grace      |
+| Eve         | Hannah     |
+| Charlie     | Hannah     |
++-------------+------------+
+28 rows in set (0.04 sec)
+
+18. List each employee with the name of the highest-paid person in their department.
+mysql> SELECT e.name AS employee,
+    -> (SELECT name FROM Employees
+    ->  WHERE department_id = e.department_id
+    ->  ORDER BY salary DESC LIMIT 1) AS highest_paid
+    -> FROM Employees e;
++---------+--------------+
+| employee| highest_paid |
++---------+--------------+
+| Alice   | Charlie      |
+| Bob     | Grace        |
+| Charlie | Charlie      |
+| David   | David        |
+| Eve     | NULL         |
+| Frank   | Frank        |
+| Grace   | Grace        |
+| Hannah  | NULL         |
++---------+--------------+
+8 rows in set (0.00 sec)
+
+19. List all possible employee-department combinations.
+mysql> SELECT e.name, d.department_name
+    -> FROM Employees e
+    -> CROSS JOIN Departments d;
++---------+-----------------+
+| name    | department_name |
++---------+-----------------+
+| Alice   | Marketing       |
+| Alice   | Sales           |
+| Alice   | Finance         |
+| Alice   | IT              |
+| Alice   | HR              |
+| Bob     | Marketing       |
+| Bob     | Sales           |
+| Bob     | Finance         |
+| Bob     | IT              |
+| Bob     | HR              |
+| Charlie | Marketing       |
+| Charlie | Sales           |
+| Charlie | Finance         |
+| Charlie | IT              |
+| Charlie | HR              |
+| David   | Marketing       |
+| David   | Sales           |
+| David   | Finance         |
+| David   | IT              |
+| David   | HR              |
+| Eve     | Marketing       |
+| Eve     | Sales           |
+| Eve     | Finance         |
+| Eve     | IT              |
+| Eve     | HR              |
+| Frank   | Marketing       |
+| Frank   | Sales           |
+| Frank   | Finance         |
+| Frank   | IT              |
+| Frank   | HR              |
+| Grace   | Marketing       |
+| Grace   | Sales           |
+| Grace   | Finance         |
+| Grace   | IT              |
+| Grace   | HR              |
+| Hannah  | Marketing       |
+| Hannah  | Sales           |
+| Hannah  | Finance         |
+| Hannah  | IT              |
+| Hannah  | HR              |
++---------+-----------------+
+40 rows in set (0.00 sec)
+
+20. Count how many total combinations of employees and departments exist.
+mysql> SELECT COUNT(*) AS total_combinations
+    -> FROM Employees e
+    -> CROSS JOIN Departments d;
++-------------------+
+| total_combinations|
++-------------------+
+|                40 |
++-------------------+
+1 row in set (0.00 sec)
+
